@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Products - Inventory Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-cube"></i> Products</h1>
+            <div class="d-flex gap-2">
+                <form class="d-flex" method="get" action="{{ url_for('products') }}">
+                    <input type="text" class="form-control me-2" name="q" placeholder="Search products..." value="{{ q or '' }}">
+                    <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+                </form>
+                <a href="{{ url_for('add_product') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Product
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-modern">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Product ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Unit Price</th>
+                                    <th>Created</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                <tr class="clickable-row" data-href="{{ url_for('view_product', product_id=product.product_id) }}" tabindex="0">
+                                    <td><strong>{{ product.product_id }}</strong></td>
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ product.description[:50] + '...' if product.description and product.description|length > 50 else product.description or '-' }}</td>
+                                    <td>₹{{ "{:,.2f}".format(product.unit_price) }}</td>
+                                    <td>{{ product.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td class="text-end">
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('view_product', product_id=product.product_id) }}" 
+                                               class="btn btn-sm btn-outline-info" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('edit_product', product_id=product.product_id) }}" 
+                                               class="btn btn-sm btn-outline-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="post" action="{{ url_for('delete_product', product_id=product.product_id) }}" style="display:inline;">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="Delete this product? This cannot be undone.">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if pagination and pagination.pages > 1 %}
+                    <nav aria-label="Products pagination" class="mt-3">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+                                <a class="page-link" href="{{ url_for('products', page=pagination.prev_num, q=q) }}">Previous</a>
+                            </li>
+                            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                                {% if p %}
+                                    <li class="page-item {{ 'active' if p == pagination.page else '' }}">
+                                        <a class="page-link" href="{{ url_for('products', page=p, q=q) }}">{{ p }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                            {% endfor %}
+                            <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+                                <a class="page-link" href="{{ url_for('products', page=pagination.next_num, q=q) }}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-cube fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Products Found</h4>
+                        <p class="text-muted">Start by adding your first product to the inventory.</p>
+                        <a href="{{ url_for('add_product') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add First Product
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

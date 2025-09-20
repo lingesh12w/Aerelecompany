@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if location else 'Add' }} Location - Inventory Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-map-marker-alt"></i> {{ 'Edit' if location else 'Add' }} Location</h1>
+            <a href="{{ url_for('locations') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Locations
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="location_id" class="form-label">Location ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="location_id" name="location_id" 
+                               value="{{ location.location_id if location else '' }}" 
+                               {{ 'readonly' if location else '' }} required>
+                        <div class="form-text">Unique identifier for the location</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Location Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ location.name if location else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3">{{ location.address if location else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="manager" class="form-label">Manager</label>
+                        <input type="text" class="form-control" id="manager" name="manager" 
+                               value="{{ location.manager if location else '' }}">
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('locations') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> {{ 'Update' if location else 'Save' }} Location
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Balance Report - Inventory Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-chart-bar"></i> Balance Report</h1>
+            <button onclick="window.print()" class="btn btn-outline-primary">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <strong>Current Inventory Levels</strong> - This report shows the current balance of each product in each location based on all recorded movements.
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-table"></i> Product Balance by Location</h5>
+            </div>
+            <div class="card-body">
+                {% if balance_data %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="balanceTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Warehouse</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Total Value</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set total_value = 0 %}
+                                {% for item in balance_data %}
+                                    {% set item_value = (item.product.unit_price * item.qty) if item.product else 0 %}
+                                    {% set total_value = total_value + item_value %}
+                                    <tr>
+                                        <td>
+                                            {% if item.product %}
+                                                <a href="{{ url_for('view_product', product_id=item.product.product_id) }}" class="text-decoration-none">
+                                                    <strong>{{ item.product.name }}</strong><br>
+                                                    <small class="text-muted">{{ item.product.product_id }}</small>
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">Unknown Product</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.location %}
+                                                <a href="{{ url_for('view_location', location_id=item.location.location_id) }}" class="text-decoration-none">
+                                                    <strong>{{ item.location.name }}</strong><br>
+                                                    <small class="text-muted">{{ item.location.location_id }}</small>
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">Unknown Location</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="fs-6 fw-bold {{ 'text-success' if item.qty > 0 else 'text-danger' if item.qty < 0 else 'text-muted' }}">
+                                                {{ item.qty }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if item.product %}
+                                                ₹{{ "{:,.2f}".format(item.product.unit_price) }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.product %}
+                                                <strong>₹{{ "{:,.2f}".format(item_value) }}</strong>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.qty > 10 %}
+                                                <span class="badge bg-success">In Stock</span>
+                                            {% elif item.qty > 0 %}
+                                                <span class="badge bg-warning">Low Stock</span>
+                                            {% elif item.qty == 0 %}
+                                                <span class="badge bg-secondary">Empty</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Negative</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-dark">
+                                <tr>
+                                    <th colspan="4">Total Inventory Value:</th>
+                                    <th>₹{{ "{:,.2f}".format(total_value) }}</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <!-- Summary Statistics -->
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ balance_data|length }}</h4>
+                                    <p class="mb-0">Total Entries</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ balance_data|selectattr('qty', 'greaterthan', 0)|list|length }}</h4>
+                                    <p class="mb-0">Positive Stock</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ balance_data|selectattr('qty', 'lessthan', 10)|selectattr('qty', 'greaterthan', 0)|list|length }}</h4>
+                                    <p class="mb-0">Low Stock</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ balance_data|selectattr('qty', 'lessthan', 1)|list|length }}</h4>
+                                    <p class="mb-0">Out of Stock</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Balance Data Available</h4>
+                        <p class="text-muted">Record some product movements to see balance information.</p>
+                        <a href="{{ url_for('add_movement') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Movement
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .navbar, .alert {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Locations - Inventory Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-map-marker-alt"></i> Locations</h1>
+            <div class="d-flex gap-2">
+                <form class="d-flex" method="get" action="{{ url_for('locations') }}">
+                    <input type="text" class="form-control me-2" name="q" placeholder="Search locations..." value="{{ q or '' }}">
+                    <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+                </form>
+                <a href="{{ url_for('add_location') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Location
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if locations %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-modern">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Location ID</th>
+                                    <th>Name</th>
+                                    <th>Address</th>
+                                    <th>Manager</th>
+                                    <th>Created</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for location in locations %}
+                                <tr class="clickable-row" data-href="{{ url_for('view_location', location_id=location.location_id) }}" tabindex="0">
+                                    <td><strong>{{ location.location_id }}</strong></td>
+                                    <td>{{ location.name }}</td>
+                                    <td>{{ location.address[:50] + '...' if location.address and location.address|length > 50 else location.address or '-' }}</td>
+                                    <td>{{ location.manager or '-' }}</td>
+                                    <td>{{ location.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td class="text-end">
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('view_location', location_id=location.location_id) }}" 
+                                               class="btn btn-sm btn-outline-info" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('edit_location', location_id=location.location_id) }}" 
+                                               class="btn btn-sm btn-outline-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="post" action="{{ url_for('delete_location', location_id=location.location_id) }}" style="display:inline;">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="Delete this location? This cannot be undone.">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if pagination and pagination.pages > 1 %}
+                    <nav aria-label="Locations pagination" class="mt-3">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+                                <a class="page-link" href="{{ url_for('locations', page=pagination.prev_num, q=q) }}">Previous</a>
+                            </li>
+                            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                                {% if p %}
+                                    <li class="page-item {{ 'active' if p == pagination.page else '' }}">
+                                        <a class="page-link" href="{{ url_for('locations', page=p, q=q) }}">{{ p }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                            {% endfor %}
+                            <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+                                <a class="page-link" href="{{ url_for('locations', page=pagination.next_num, q=q) }}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-map-marker-alt fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Locations Found</h4>
+                        <p class="text-muted">Start by adding your first location to the system.</p>
+                        <a href="{{ url_for('add_location') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add First Location
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
